@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wang.jk.mapper.ExamPlaceMapper">
+    <resultMap id="rmSelectRegionExamPlaces"
+               type="ProvinceVo">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="plate" column="plate"/>
+        <collection property="children" ofType="CityVo">
+            <id property="id" column="city_id"/>
+            <result property="name" column="city_name"/>
+            <result property="plate" column="city_plate"/>
+            <collection property="children" ofType="ExamPlace">
+                <id property="id" column="place_id"/>
+                <result property="name" column="place_name"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <select id="selectRegionExamPlaces"
+            resultMap="rmSelectRegionExamPlaces">
+        SELECT
+            p.id,
+            p.name,
+            p.plate,
+            c.id city_id,
+            c.name city_name,
+            c.plate city_plate,
+            ep.id place_id,
+            ep.name place_name
+        FROM
+            plate_region p
+            JOIN plate_region c ON c.parent_id = p.id
+            JOIN exam_place ep ON ep.city_id = c.id
+        WHERE p.parent_id = 0
+            ORDER BY p.pinyin, c.plate
+    </select>
+</mapper>

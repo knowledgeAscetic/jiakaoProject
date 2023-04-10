@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wang.jk.mapper.TestTypeMapper" >
+  <resultMap id="BaseResultMap" type="com.wang.jk.pojo.po.TestType" >
+    <result column="column_1" property="column1" jdbcType="TINYINT" />
+    <result column="column_2" property="column2" jdbcType="TINYINT" />
+    <result column="column_3" property="column3" jdbcType="SMALLINT" />
+    <result column="column_4" property="column4" jdbcType="SMALLINT" />
+    <result column="column_6" property="column6" jdbcType="INTEGER" />
+    <result column="column_7" property="column7" jdbcType="INTEGER" />
+    <result column="column_8" property="column8" jdbcType="INTEGER" />
+    <result column="column_9" property="column9" jdbcType="INTEGER" />
+    <result column="column_10" property="column10" jdbcType="BIGINT" />
+    <result column="column_11" property="column11" jdbcType="BIGINT" />
+  </resultMap>
+  <insert id="insert" parameterType="com.wang.jk.pojo.po.TestType" >
+    insert into test_type (column_1, column_2, column_3, 
+      column_4, column_6, column_7, 
+      column_8, column_9, column_10, 
+      column_11)
+    values (#{column1,jdbcType=TINYINT}, #{column2,jdbcType=TINYINT}, #{column3,jdbcType=SMALLINT}, 
+      #{column4,jdbcType=SMALLINT}, #{column6,jdbcType=INTEGER}, #{column7,jdbcType=INTEGER}, 
+      #{column8,jdbcType=INTEGER}, #{column9,jdbcType=INTEGER}, #{column10,jdbcType=BIGINT}, 
+      #{column11,jdbcType=BIGINT})
+  </insert>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select column_1, column_2, column_3, column_4, column_6, column_7, column_8, column_9, 
+    column_10, column_11
+    from test_type
+  </select>
+</mapper>

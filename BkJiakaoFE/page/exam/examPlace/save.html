@@ -1,0 +1,67 @@
+<div class="layuimini-main">
+    <form id="save-form">
+        <div class="layui-form layuimini-form" lay-filter="save-form">
+                <input type="hidden" name="id">
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name"
+                               lay-verify="required" lay-reqtext="名称不能为空"
+                               placeholder="请输入名称" class="layui-input" autofocus>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">省份</label>
+                    <div class="layui-input-block">
+                        <select name="provinceId"
+                                lay-verify="required"
+                                lay-reqtext="省份不能为空"
+                                lay-filter="save-provinceId"
+                                lay-search>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">城市</label>
+                    <div class="layui-input-block">
+                        <select name="cityId"
+                                lay-verify="required"
+                                lay-reqtext="城市不能为空"
+                                lay-search>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">经度</label>
+                    <div class="layui-input-block">
+                        <input type="number" name="longitude"
+                               placeholder="请输入经度"
+                               step="0.0000001"
+                               min="0"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">纬度</label>
+                    <div class="layui-input-block">
+                        <input type="number" name="latitude"
+                               placeholder="请输入纬度"
+                               step="0.0000001"
+                               min="0"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">地址</label>
+                    <div class="layui-input-block">
+                        <textarea name="address" class="layui-textarea" placeholder="请输入地址"></textarea>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button type="button" class="layui-btn layui-btn-normal" lay-submit lay-filter="save-btn">保存</button>
+                    </div>
+                </div>
+        </div>
+    </form>
+</div>

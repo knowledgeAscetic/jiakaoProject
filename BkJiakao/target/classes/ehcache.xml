@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns='http://www.ehcache.org/v3'
+        xsi:schemaLocation="http://www.ehcache.org/v3
+        http://www.ehcache.org/schema/ehcache-core.xsd">
+    <persistence directory="D:/ehcache"/>
+
+    <cache-template name="common">
+        <key-type>java.io.Serializable</key-type>
+        <value-type>java.io.Serializable</value-type>
+        <resources>
+            <!-- 堆中最多存放1000个对象 -->
+            <heap>10000</heap>
+            <!-- 堆外最多存储50MB -->
+            <!--<offheap unit="MB">50</offheap>-->
+            <!--&lt;!&ndash; 磁盘存储最多1GB &ndash;&gt;-->
+            <!--<disk unit="GB" persistent="true">1</disk>-->
+        </resources>
+    </cache-template>
+
+    <cache alias="default" uses-template="common">
+        <key-type>java.lang.Integer</key-type>
+        <value-type>java.lang.String</value-type>
+
+        <expiry>
+            <!-- 永不过期 -->
+            <none/>
+        </expiry>
+    </cache>
+
+    <cache alias="token" uses-template="common">
+        <key-type>java.lang.String</key-type>
+        <value-type>java.lang.Object</value-type>
+        <expiry>
+            <!-- 7天内不访问就过期 -->
+            <tti unit="days">7</tti>
+        </expiry>
+        <listeners>
+            <listener>
+                <class>com.wang.jk.common.cache.EhTokenListenter</class>
+                <event-firing-mode>ASYNCHRONOUS</event-firing-mode>
+                <event-ordering-mode>UNORDERED</event-ordering-mode>
+                <events-to-fire-on>EXPIRED</events-to-fire-on>
+                <events-to-fire-on>REMOVED</events-to-fire-on>
+                <events-to-fire-on>CREATED</events-to-fire-on>
+            </listener>
+        </listeners>
+    </cache>
+</config>

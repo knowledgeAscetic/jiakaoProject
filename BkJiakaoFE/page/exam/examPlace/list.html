@@ -1,0 +1,203 @@
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+        <div>
+            <form id="search-form"
+                  class="layui-form layui-form-pane"
+                  lay-filter="search-form">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input type="text" name="keyword"
+                                   placeholder="名称、地址"
+                                   class="layui-input">
+                        </div>
+                        <div class="layui-input-inline">
+                            <select name="provinceId" lay-search lay-filter="provinceId">
+                            </select>
+                        </div>
+                        <div class="layui-input-inline">
+                            <select name="cityId" lay-search>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button type="button"
+                                id="reset-btn"
+                                class="layui-btn layui-btn-warm">
+                            <i class="layui-icon layui-icon-refresh"></i> 重 置 </button>
+                        <button type="submit"
+                                id="search-btn"
+                                class="layui-btn layui-btn-normal"
+                                lay-submit lay-filter="search-btn">
+                            <i class="layui-icon layui-icon-search"></i> 搜 索 </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <table class="layui-hide" id="data-table" lay-filter="data-table"></table>
+
+        <script type="text/html" id="data-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn"
+                        lay-event="add" id="add-btn"> 添加 </button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn layui-btn-disabled"
+                        lay-event="remove" id="remove-btn"> 删除 </button>
+            </div>
+        </script>
+
+        <script type="text/html" id="data-tool">
+            <a class="layui-btn layui-btn-xs"
+               lay-event="route">路线图</a>
+            <a class="layui-btn layui-btn-normal layui-btn-xs"
+               lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger"
+               lay-event="remove">删除</a>
+        </script>
+    </div>
+</div>
+
+<script>
+    class ExamPlacePage extends ListPage {
+        constructor() {
+            super({
+                title: '考场',
+                uri: 'examPlaces',
+                cols: [[
+                    {type: 'checkbox', align: 'center'},
+                    {field: 'name', title: '名称', align: 'center'},
+                    {field: 'address', title: '地址', align: 'center'},
+                    {title: '操作', minWidth: 150, toolbar: '#data-tool', align: 'center'}
+                ]],
+                savePageUri: 'page/exam/examPlace/save.html',
+                saveUri: 'examPlaces/save',
+                removeUri: 'examPlaces/remove'
+            })
+        }
+
+        _initRegions(form) {
+            if (this._provinces) {
+                this._buildRegions(form)
+                return
+            }
+            Ajaxs.get({
+                uri: 'plateRegions/list',
+                success: (response) => {
+                    if (response.data.length === 0) return
+                    this._provinces = response.data
+                    this._buildRegions(form)
+                }
+            })
+        }
+
+        _buildRegions(form) {
+            const build = (o) => {
+                return {
+                    val: o.data.id,
+                    text: o.data.id
+                        ? (o.data.plate + '-' + o.data.name)
+                        : o.data.name
+                }
+            }
+
+            let data = this._provinces
+            if (form === this._searchForm) {
+                data = Commons.deepCopy(data)
+                data.unshift({
+                    name: '所有省份',
+                    children: []
+                })
+                for (const pro of data) {
+                    pro.children.unshift({
+                        name: '所有城市'
+                    })
+                }
+            }
+
+            const citySelect = new Select({
+                name: 'cityId',
+                form
+            })
+            const provinceSelect = new Select({
+                name: 'provinceId',
+                form,
+                change: (o) => {
+                    citySelect.data(o.data.children, build)
+                }
+            })
+            provinceSelect.data(data, build)
+
+            // 初始化
+            if (this._editData) {
+                provinceSelect.val(this._editData.provinceId)
+                citySelect.val(this._editData.cityId)
+            }
+        }
+
+        _initSearchForm() {
+            super._initSearchForm()
+
+            this._initRegions(this._searchForm)
+        }
+
+        _initSaveForm() {
+            super._initSaveForm()
+
+            this._initRegions(this._saveForm)
+        }
+
+        _tool(obj) {
+            if (obj.event === 'route') {
+                this._route(obj)
+            } else {
+                super._tool(obj)
+            }
+        }
+
+        _route(obj) {
+            const loadSuccess = (resp) => {
+                // 构建数据
+                const preview = []
+                for (const route of resp.data) {
+                    preview.push({
+                        uri: route.uri,
+                        extra: {
+                            id: route.id
+                        }
+                    })
+                }
+                // 初始化上传组件
+                new FileInput({
+                    selector: '#upload-file',
+                    name: 'files',
+                    accept: 'image/*',
+                    multiple: true,
+                    preview,
+                    uploadUri: 'images/save',
+                    removeUri: 'images/remove',
+                    uploadExtraData: {
+                        type: ImageType.ROUTE,
+                        ownerId: obj.data.id
+                    }
+                })
+            }
+
+            Layers.openUri('page/common/fileInput.html', {
+                title: '路线图',
+                success: () => {
+                    Ajaxs.loadGet({
+                        uri: 'images',
+                        data: {
+                            ownerId: obj.data.id,
+                            type: ImageType.ROUTE
+                        },
+                        success: loadSuccess,
+                        error: '加载路线图失败'
+                    })
+                }
+            })
+        }
+    }
+
+    new ExamPlacePage()
+</script>

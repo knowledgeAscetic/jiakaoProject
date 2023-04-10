@@ -1,0 +1,258 @@
+<div class="layuimini-container layuimini-page-anim">
+    <div class="layuimini-main">
+        <div>
+            <form id="search-form"
+                  class="layui-form layui-form-pane"
+                  lay-filter="search-form">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input type="text" name="keyword"
+                                   placeholder="名称、简介"
+                                   class="layui-input">
+                        </div>
+                        <div class="layui-input-inline">
+                            <select name="type">
+                                <option value>所有类型</option>
+                                <option value="0">合集</option>
+                                <option value="2">科目2</option>
+                                <option value="3">科目3</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline">
+                            <select name="provinceId" lay-search lay-filter="provinceId">
+                            </select>
+                        </div>
+                        <div class="layui-input-inline">
+                            <select name="cityId" lay-search lay-filter="cityId">
+                            </select>
+                        </div>
+                        <div class="layui-input-inline">
+                            <select name="placeId" lay-search>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button type="button"
+                                id="reset-btn"
+                                class="layui-btn layui-btn-warm">
+                            <i class="layui-icon layui-icon-refresh"></i> 重 置 </button>
+                        <button type="submit"
+                                id="search-btn"
+                                class="layui-btn layui-btn-normal"
+                                lay-submit lay-filter="search-btn">
+                            <i class="layui-icon layui-icon-search"></i> 搜 索 </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <table class="layui-hide" id="data-table" lay-filter="data-table"></table>
+
+        <script type="text/html" id="data-toolbar">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn"
+                        lay-event="add" id="add-btn"> 添加 </button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn layui-btn-disabled"
+                        lay-event="remove" id="remove-btn"> 删除 </button>
+            </div>
+        </script>
+
+        <script type="text/html" id="data-tool">
+            <a class="layui-btn layui-btn-xs"
+               lay-event="video">视频</a>
+            <a class="layui-btn layui-btn-normal layui-btn-xs"
+               lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger"
+               lay-event="remove">删除</a>
+        </script>
+    </div>
+</div>
+
+<script>
+    class ExamPlaceCoursePage extends ListPage {
+        constructor() {
+            super({
+                title: '科2科3课程',
+                uri: 'examPlaceCourses',
+                cols: [[
+                    {type: 'checkbox', align: 'center'},
+                    {field: 'name', title: '名称', align: 'center'},
+                    {field: 'price', title: '价格', align: 'center',
+                        templet: (d) => {
+                            return '￥' + d.price
+                        }
+                    },
+                    {field: 'cover', title: '封面', align: 'center',
+                        templet: (d) => {
+                            const uri = Commons.url(d.cover)
+                            return uri ? `<img src="${uri}">` : ''
+                        }
+                    },
+                    {field: 'type', title: '类型', align: 'center',
+                        templet: (d) => {
+                            switch (d.type) {
+                                case CourseType.SET: return '合集'
+                                case CourseType.K2: return '科目2'
+                                case CourseType.K3: return '科目3'
+                            }
+                        }
+                    },
+                    {field: 'intro', title: '简介', align: 'center'},
+                    {title: '操作', minWidth: 150, toolbar: '#data-tool', align: 'center'}
+                ]],
+                savePageUri: 'page/exam/examPlaceCourse/save.html',
+                saveUri: 'examPlaceCourses/saveAll',
+                removeUri: 'examPlaceCourses/remove'
+            })
+        }
+
+        _initRegions(form) {
+            if (this._provinces) {
+                this._buildRegions(form)
+                return
+            }
+            Ajaxs.get({
+                uri: 'examPlaces/regions',
+                success: (response) => {
+                    if (response.data.length === 0) return
+                    this._provinces = response.data
+                    this._buildRegions(form)
+                }
+            })
+        }
+
+        _buildRegions(form) {
+            const buildRegion = (o) => {
+                return {
+                    val: o.data.id,
+                    text: o.data.id
+                        ? (o.data.plate + '-' + o.data.name)
+                        : o.data.name
+                }
+            }
+
+            let data = this._provinces
+            if (form === this._searchForm) {
+                data = Commons.deepCopy(data)
+                data.unshift({
+                    name: '所有省份',
+                    children: []
+                })
+                for (const pro of data) {
+                    pro.children.unshift({
+                        name: '所有城市',
+                        children: []
+                    })
+
+                    for (const city of pro.children) {
+                        city.children.unshift({
+                            name: '所有考场'
+                        })
+                    }
+                }
+            }
+
+            const placeSelect = new Select({
+                name: 'placeId',
+                form
+            })
+            const citySelect = new Select({
+                name: 'cityId',
+                form,
+                change: (o) => {
+                    placeSelect.data(o.data.children, (p) => {
+                        return {
+                            val: p.data.id,
+                            text: p.data.name
+                        }
+                    })
+                }
+            })
+            const provinceSelect = new Select({
+                name: 'provinceId',
+                form,
+                change: (o) => {
+                    citySelect.data(o.data.children, buildRegion)
+                }
+            })
+            provinceSelect.data(data, buildRegion)
+
+            // 初始化
+            if (this._editData) {
+                provinceSelect.val(this._editData.provinceId)
+                citySelect.val(this._editData.cityId)
+                placeSelect.val(this._editData.placeId)
+            }
+        }
+
+        _initSearchForm() {
+            super._initSearchForm()
+
+            this._initRegions(this._searchForm)
+        }
+
+        _initSaveForm() {
+            super._initSaveForm()
+
+            this._initRegions(this._saveForm)
+
+            const input = new ImageInput({
+                selector: '#cover',
+                name: 'cover',
+                fileName: 'coverFile',
+                placeholderSrc: 'images/noimage.png'
+            })
+            if (this._editData) {
+                input.setImageUri(this._editData.cover)
+            }
+        }
+
+        _tool(obj) {
+            super._tool(obj)
+
+            if (obj.event === 'video') {
+                this._video(obj)
+            }
+        }
+
+        _video(obj) {
+            const success = () => {
+                this._uploadSuccess = false
+                // 构建数据
+                const preview = []
+                if (obj.data.video) {
+                    preview.push({
+                        uri: obj.data.video
+                    })
+                }
+                // 初始化上传组件
+                new FileInput({
+                    selector: '#upload-file',
+                    name: 'videoFile',
+                    accept: 'video/*',
+                    preview,
+                    uploadUri: 'examPlaceCourses/uploadVideo',
+                    uploadExtraData: {
+                        id: obj.data.id
+                    },
+                    batchUpload: (resp) => {
+                        this._uploadSuccess = true
+                    }
+                })
+            }
+
+            Layers.openUri('page/common/fileInput.html', {
+                title: '课程视频',
+                success,
+                end: () => {
+                    if (!this._uploadSuccess) return
+
+                    this._table.reload()
+                }
+            })
+        }
+    }
+
+    new ExamPlaceCoursePage()
+</script>

@@ -1,0 +1,31 @@
+{
+  "groups": [
+    {
+      "name": "jk",
+      "type": "com.wang.jk.common.prop.JkProperties",
+      "sourceType": "com.wang.jk.common.prop.JkProperties"
+    },
+    {
+      "name": "jk.properties",
+      "type": "com.wang.jk.common.prop.JkProperties",
+      "sourceType": "com.wang.jk.common.prop.JkProperties"
+    },
+    {
+      "name": "jk.token",
+      "type": "com.wang.jk.common.prop.JkProperties$Token",
+      "sourceType": "com.wang.jk.common.prop.JkProperties"
+    },
+    {
+      "name": "jk.upload",
+      "type": "com.wang.jk.common.prop.JkProperties$Upload",
+      "sourceType": "com.wang.jk.common.prop.JkProperties"
+    },
+    {
+      "name": "jk.web",
+      "type": "com.wang.jk.common.prop.JkProperties$Web",
+      "sourceType": "com.wang.jk.common.prop.JkProperties"
+    }
+  ],
+  "properties": [],
+  "hints": []
+}
